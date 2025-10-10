@@ -1,6 +1,8 @@
-import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.junit.jupiter.api.BeforeEach;
-import static org.junit.jupiter.api.Assertions.*;
+import org.junit.jupiter.api.Test;
 
 public class GameEngineTest {
     private GameEngine engine;
@@ -64,6 +66,76 @@ public class GameEngineTest {
     public void testBoundaries() {
         assertEquals(1, engine.getMin());
         assertEquals(100, engine.getMax());
+    }
+
+    @Test
+    public void testHintVeryClose() {
+        engine.setTarget(50);
+        engine.makeGuess(60);
+        engine.makeGuess(60);
+        GuessResult result = engine.makeGuess(55);
+        assertTrue(result.getMessage().contains("HINT: You're very close!"));
+    }
+
+    @Test
+    public void testHintGettingWarmer() {
+        engine.setTarget(50);
+        for (int i = 0; i < 5; i++) {
+            engine.makeGuess(90);
+        }
+        GuessResult result = engine.makeGuess(65);
+        assertTrue(result.getMessage().contains("HINT: Getting warmer!"));
+    }
+
+    @Test
+    public void testNoHintWhenFarAway() {
+        engine.setTarget(50);
+        for (int i = 0; i < 5; i++) {
+            engine.makeGuess(90);
+        }
+        GuessResult result = engine.makeGuess(1);
+        assertFalse(result.getMessage().contains("HINT"));
+    }
+
+    @Test
+    public void testNoHintBeforeThreeAttempts() {
+        engine.setTarget(50);
+        GuessResult result = engine.makeGuess(55);
+        assertFalse(result.getMessage().contains("HINT"));
+    }
+
+    @Test
+    public void testHintsCanBeDisabled() {
+        engine.setTarget(50);
+        engine.setHintsEnabled(false);
+        for (int i = 0; i < 3; i++) {
+            engine.makeGuess(60);
+        }
+        GuessResult result = engine.makeGuess(55);
+        assertFalse(result.getMessage().contains("HINT"));
+    }
+
+    @Test
+    public void testHintsEnabledByDefault() {
+        assertTrue(engine.isHintsEnabled());
+    }
+
+    @Test
+    public void testSetHintsEnabled() {
+        engine.setHintsEnabled(false);
+        assertFalse(engine.isHintsEnabled());
+        engine.setHintsEnabled(true);
+        assertTrue(engine.isHintsEnabled());
+    }
+
+    @Test
+    public void testHintFieldAccessor() {
+        engine.setTarget(50);
+        for (int i = 0; i < 3; i++) {
+            engine.makeGuess(60);
+        }
+        GuessResult result = engine.makeGuess(55);
+        assertFalse(result.getHint().isEmpty());
     }
 
     @Test
